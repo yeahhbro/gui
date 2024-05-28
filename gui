@@ -1,0 +1,198 @@
+-- Main GUI container
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomGUI"
+ScreenGui.Parent = game.CoreGui
+
+-- Helper function to create buttons with icons
+local function createIconButton(parent, position, imageId)
+    local button = Instance.new("ImageButton")
+    button.Size = UDim2.new(0, 40, 0, 40)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.Image = imageId
+    button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 5)
+    uiCorner.Parent = button
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(50, 50, 50)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = button
+
+    button.Parent = parent
+    return button
+end
+
+-- Helper function to create panels
+local function createPanel(size, position, parent)
+    local panel = Instance.new("Frame")
+    panel.Size = size
+    panel.Position = position
+    panel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 10)
+    uiCorner.Parent = panel
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(50, 50, 50)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = panel
+
+    panel.Parent = parent
+    return panel
+end
+
+-- Side Menu Frame
+local SideMenuFrame = Instance.new("Frame")
+SideMenuFrame.Size = UDim2.new(0, 60, 0, 200)
+SideMenuFrame.Position = UDim2.new(0, 10, 0, 10)
+SideMenuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 10)
+uiCorner.Parent = SideMenuFrame
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(50, 50, 50)
+uiStroke.Thickness = 2
+uiStroke.Parent = SideMenuFrame
+
+SideMenuFrame.Parent = ScreenGui
+
+-- Home Button
+local HomeButton = createIconButton(SideMenuFrame, UDim2.new(0, 10, 0, 20), "rbxassetid://6031075938")
+
+-- Person Button
+local PersonButton = createIconButton(SideMenuFrame, UDim2.new(0, 10, 0, 80), "rbxassetid://6031091004")
+
+-- Settings Button
+local SettingsButton1 = createIconButton(SideMenuFrame, UDim2.new(0, 10, 0, 140), "rbxassetid://6031280882")
+
+-- Function to create the minimize button
+local function createMinimizeButton(parent)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 30)
+    button.Position = UDim2.new(0.5, -40, 0.9, -15)
+    button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    button.Text = "Minimize"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 5)
+    uiCorner.Parent = button
+
+    button.Parent = parent
+    return button
+end
+
+-- Create Tab Frames
+local function createTab()
+    local tab = Instance.new("Frame")
+    tab.Size = UDim2.new(1, 0, 1, 0)
+    tab.Position = UDim2.new(1, 0, 0, 0)  -- Start off-screen
+    tab.BackgroundTransparency = 1
+    tab.Parent = ScreenGui
+
+    -- Profile Panel
+    createPanel(UDim2.new(0, 200, 0, 150), UDim2.new(0, 80, 0, 10), tab)
+
+    -- Store Panel
+    createPanel(UDim2.new(0, 250, 0, 150), UDim2.new(0, 290, 0, 10), tab)
+
+    -- Settings Panel
+    local settingsPanel = createPanel(UDim2.new(0, 200, 0, 100), UDim2.new(0, 80, 0, 170), tab)
+    
+    return tab, settingsPanel
+end
+
+local HomeTab = createTab()
+local PersonTab = createTab()
+local SettingsTab, SmallSettingsPanel = createTab()
+
+HomeTab.Position = UDim2.new(0, 0, 0, 0)  -- Set HomeTab as visible
+
+-- Create Minimize Button on the smallest settings panel
+local minimizeButton = createMinimizeButton(SmallSettingsPanel)
+
+-- Function to switch tabs with animation
+local function switchTab(selectedTab)
+    local tabs = {HomeTab, PersonTab, SettingsTab}
+    for _, tab in ipairs(tabs) do
+        if tab == selectedTab then
+            tab.Visible = true
+            tab:TweenPosition(UDim2.new(0, 0, 0, 0), "Out", "Quad", 0.3, true)
+        else
+            tab:TweenPosition(UDim2.new(1, 0, 0, 0), "Out", "Quad", 0.3, true, function()
+                tab.Visible = false
+            end)
+        end
+    end
+end
+
+-- Minimize function
+local function minimizePanels()
+    HomeTab.Visible = false
+    PersonTab.Visible = false
+    SettingsTab.Visible = false
+end
+
+-- Add functionality to buttons
+HomeButton.MouseButton1Click:Connect(function()
+    print("Home button clicked")
+    switchTab(HomeTab)
+end)
+
+PersonButton.MouseButton1Click:Connect(function()
+    print("Person button clicked")
+    switchTab(PersonTab)
+end)
+
+SettingsButton1.MouseButton1Click:Connect(function()
+    print("Settings button clicked")
+    switchTab(SettingsTab)
+end)
+
+minimizeButton.MouseButton1Click:Connect(function()
+    print("Minimize button clicked")
+    minimizePanels()
+end)
+
+-- Make the GUI draggable
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    ScreenGui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+SideMenuFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = ScreenGui.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+SideMenuFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
